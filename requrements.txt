@@ -1,0 +1,4 @@
+Flask
+configparser
+schedule
+scapy
