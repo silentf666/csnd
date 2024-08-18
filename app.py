@@ -1,4 +1,3 @@
-#pip install flask configparser schedule scapy
 from flask import Flask, render_template, request, redirect, url_for
 import csv
 import collections
@@ -6,7 +5,7 @@ import configparser
 import os
 import logging
 from discover import run_discovery
-import threading  # Import the threading module
+import threading
 import time
 import schedule
 
@@ -47,27 +46,65 @@ def index():
 
     return render_template('index.html', devices_by_network=devices_by_network)
 
-
-
+@app.route('/networks', methods=['GET'])
+def networks():
+    config = load_config()
+    networks = dict(config.items('networks'))
+    return render_template('networks.html', networks=networks)
 
 @app.route('/add_network', methods=['GET', 'POST'])
 def add_network():
     config = load_config()
     if request.method == 'POST':
-        network = request.form['network']
+        network_name = request.form['network_name']
+        network_address = request.form['network_address']
         if 'networks' not in config:
             config['networks'] = {}
 
         # Check if the network is already in the configuration
-        if network in config['networks']:
-            return render_template('add_network.html', message=f"Network {network} already exists!")
+        if network_name in config['networks']:
+            return render_template('add_network.html', message=f"Network {network_name} already exists!")
 
         # Add the new network
-        config['networks'][network] = network
+        config['networks'][network_name] = network_address
         with open(config_file_path, 'w') as configfile:
             config.write(configfile)
-        return redirect(url_for('index'))
+        return redirect(url_for('networks'))
     return render_template('add_network.html')
+
+@app.route('/edit_network/<network_name>', methods=['GET', 'POST'])
+def edit_network(network_name):
+    config = load_config()
+    networks = dict(config.items('networks'))
+
+    if request.method == 'POST':
+        new_network_name = request.form['network_name']
+        network_address = request.form['network_address']
+
+        if new_network_name != network_name:
+            del networks[network_name]
+            networks[new_network_name] = network_address
+        else:
+            networks[network_name] = network_address
+
+        config['networks'] = networks
+        with open(config_file_path, 'w') as configfile:
+            config.write(configfile)
+        return redirect(url_for('networks'))
+
+    network_address = networks.get(network_name, '')
+    return render_template('edit_network.html', network_name=network_name, network_address=network_address)
+
+@app.route('/remove_network/<network_name>')
+def remove_network(network_name):
+    config = load_config()
+    networks = dict(config.items('networks'))
+    if network_name in networks:
+        del networks[network_name]
+        config['networks'] = networks
+        with open(config_file_path, 'w') as configfile:
+            config.write(configfile)
+    return redirect(url_for('networks'))
 
 @app.route('/view_inventory')
 def view_inventory():
@@ -95,7 +132,7 @@ def run_discovery_now():
 def read_interval_from_config():
     """Read the scan interval from settings.ini."""
     config = configparser.ConfigParser()
-    config.read('config/settings.ini')
+    config.read(config_file_path)
     interval = int(config['settings'].get('scan_interval_minutes', 30))
     return interval
     
@@ -107,8 +144,6 @@ def schedule_discovery():
     while True:
         schedule.run_pending()
         time.sleep(1)
-    
-
 
 if __name__ == '__main__':
     # Start the scheduler in a separate thread
