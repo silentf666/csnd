@@ -1,10 +1,20 @@
 #pip install flask configparser schedule scapy
 from flask import Flask, render_template, request, redirect, url_for
+import csv
+import collections
 import configparser
 import os
+import logging
+from discover import run_discovery
+import threading  # Import the threading module
+import time
+import schedule
 
 app = Flask(__name__)
 config_file_path = 'config/settings.ini'
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Load or create the config file
 def load_config():
@@ -19,7 +29,26 @@ def load_config():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Load inventory data from file
+    devices_by_network = {}
+    try:
+        with open('data/inventory.txt', 'r') as f:
+            for line in f:
+                network, ip, mac, hostname = line.strip().split(',', 3)
+                if network not in devices_by_network:
+                    devices_by_network[network] = []
+                devices_by_network[network].append({
+                    'ip': ip,
+                    'mac': mac,
+                    'hostname': hostname
+                })
+    except FileNotFoundError:
+        devices_by_network = {}
+
+    return render_template('index.html', devices_by_network=devices_by_network)
+
+
+
 
 @app.route('/add_network', methods=['GET', 'POST'])
 def add_network():
@@ -42,19 +71,46 @@ def add_network():
 
 @app.route('/view_inventory')
 def view_inventory():
-    inventory_file = config_file_path
-    inventory_data = []
-    if os.path.exists(inventory_file):
-        with open(inventory_file, 'r') as f:
-            inventory_data = f.readlines()
-    return render_template('view_inventory.html', inventory=inventory_data)
+    inventory_file = 'data/inventory.txt'
+    devices_by_network = collections.defaultdict(list)
     
+    try:
+        with open(inventory_file, 'r') as f:
+            reader = csv.DictReader(f, fieldnames=['network', 'ip', 'mac', 'hostname'])
+            for row in reader:
+                devices_by_network[row['network']].append(row)
+    except FileNotFoundError:
+        print(f"Inventory file {inventory_file} not found.")
+    
+    return render_template('view_inventory.html', devices_by_network=devices_by_network)
+
 @app.route('/run_discovery_now')
 def run_discovery_now():
-    # Logic to run the discovery immediately
-    return "Network discovery is running!"
+    # Run the network discovery and get devices
+    devices = run_discovery()
+
+    # Render the results in a template
+    return render_template('scan_results.html', devices=devices)
+
+def read_interval_from_config():
+    """Read the scan interval from settings.ini."""
+    config = configparser.ConfigParser()
+    config.read('config/settings.ini')
+    interval = int(config['settings'].get('scan_interval_minutes', 30))
+    return interval
+    
+def schedule_discovery():
+    """Schedule the discovery task."""
+    interval = read_interval_from_config()
+    schedule.every(interval).minutes.do(run_discovery)
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+    
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
-
+    # Start the scheduler in a separate thread
+    threading.Thread(target=schedule_discovery, daemon=True).start()
+    app.run(debug=True)
