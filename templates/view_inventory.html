@@ -3,42 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Inventory</title>
+    <title>Inventory Overview</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Network Inventory</h1>
-            <nav>
-                <a href="{{ url_for('index') }}" class="back-home">Back Home</a>
-            </nav>
-        </header>
-        <main>
-            {% for network, devices in devices_by_network.items() %}
-                <section class="network-section">
-                    <h2>Network: {{ network }}</h2>
-                    <table>
-                        <thead>
+    <header>
+        <h1>Inventory Management</h1>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('networks') }}">Manage Networks</a></li>
+                <li><a href="{{ url_for('view_inventory') }}">View Inventory</a></li>
+                <li><a href="{{ url_for('run_discovery_now') }}">Run Discovery</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <h2>Inventory Overview</h2>
+        <div class="filter-container">
+            <div class="filter-label">Filter:</div>
+            <div class="filter-options">
+                <div class="network-menu">
+                    <a href="{{ url_for('view_inventory') }}" class="{{ 'selected' if not selected_network else '' }}">All Networks</a>
+                    {% for network, address in network_name_mapping.items() %}
+                        <a href="{{ url_for('view_inventory', network=network) }}" class="{{ 'selected' if network == selected_network else '' }}">
+                            {{ address }} - {{ network }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Network</th>
+                    <th>IP Address</th>
+                    <th>MAC Address</th>
+                    <th>Hostname</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if devices_by_network %}
+                    {% for network, devices in devices_by_network.items() %}
+                        <tr>
+                            <td colspan="5"><strong>{{ network_name_mapping.get(network, network) }}</strong></td>
+                        </tr>
+                        {% for device in devices %}
                             <tr>
-                                <th>IP Address</th>
-                                <th>MAC Address</th>
-                                <th>Hostname</th>
+                                <td></td>
+                                <td>{{ device['ip'] }}</td>
+                                <td>{{ device['mac'] }}</td>
+                                <td>{{ device['hostname'] }}</td>
+                                <td>
+                                    <form action="{{ url_for('update_comment', ip=device['ip']) }}" method="POST" style="display: flex; align-items: center;">
+                                        <!-- Input for comment -->
+                                        <input type="text" name="comment" value="{{ device['comment'] }}" placeholder="Add comment" style="margin-right: 5px;">
+                                        
+                                        <!-- Checkbox for keep status -->
+                                        <input type="checkbox" name="keep" value="True"
+                                        {% if device['keep'] == 'True' %} checked {% endif %}
+                                        onchange="this.form.submit()">
+                                        
+                                        <!-- Hidden input to handle unchecked state -->
+                                        <input type="hidden" name="keep" value="False">
+                                        
+                                        <!-- Submit button -->
+                                        <button type="submit" class="icon-button">
+                                            <img src="{{ url_for('static', filename='icons/save.png') }}" alt="Save" class="icon">
+                                        </button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('delete_device', ip=device['ip']) }}" method="POST">
+                                        <button type="submit" class="icon-button">
+                                            <img src="{{ url_for('static', filename='icons/delete.png') }}" alt="Delete" class="icon">
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for device in devices %}
-                                <tr>
-                                    <td>{{ device['ip'] }}</td>
-                                    <td>{{ device['mac'] }}</td>
-                                    <td>{{ device['hostname'] }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </section>
-            {% endfor %}
-        </main>
-    </div>
+                        {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5">No devices found for the selected network.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </main>
 </body>
 </html>

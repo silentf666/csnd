@@ -1,11 +1,13 @@
-# discover.py
-
 from scapy.all import ARP, Ether, srp, ICMP, IP, sr1
 import socket
 import os
 import configparser
 import ipaddress
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import collections
+import csv
+
+inventory_file = 'data/inventory.txt'
 
 def resolve_hostname(ip):
     try:
@@ -82,22 +84,65 @@ def discover_network(network, num_workers):
     
     return devices
 
-def save_inventory(devices, inventory_file):
+def save_inventory(devices_by_network):
+    """ Save the updated inventory to a file. """
     print(f"Saving results to {inventory_file}...")
     file_exists = os.path.isfile(inventory_file)
     try:
-        with open(inventory_file, "a") as f:
+        with open(inventory_file, "w") as f:
             if not file_exists:
                 # Write headers if file does not exist
-                f.write("Network,IP Address,MAC Address,Hostname\n")
-            for device in devices:
-                # Provide a default value for 'network' if it's missing
-                network = device.get('network', 'Unknown')
-                f.write(f"{network},{device['ip']},{device['mac']},{device['hostname']}\n")
+                f.write("Network,IP Address,MAC Address,Hostname,Comment,Keep\n")
+            for network, devices in devices_by_network.items():
+                for device in devices:
+                    f.write(f"{network},{device['ip']},{device['mac']},{device['hostname']},{device['comment']},{device['keep']}\n")
         print(f"Results saved to {inventory_file}")
     except IOError as e:
         print(f"Error saving results to {inventory_file}: {e}")
 
+def load_inventory():
+    """ Load inventory from the file and return it as a dictionary of lists. """
+    devices_by_network = collections.defaultdict(list)
+    
+    if not os.path.isfile(inventory_file):
+        return devices_by_network  # Return empty if the file does not exist
+    
+    try:
+        with open(inventory_file, 'r') as f:
+            reader = csv.DictReader(f, fieldnames=['network', 'ip', 'mac', 'hostname', 'comment', 'keep'])
+            for row in reader:
+                # Use the 'keep' field to mark devices that should be kept
+                devices_by_network[row['network']].append(row)
+    except IOError as e:
+        print(f"Error reading inventory file: {e}")
+    
+    return devices_by_network
+def update_inventory(devices, inventory_file):
+    """ Update the inventory file with the current devices. """
+    # Load existing inventory
+    existing_devices = load_inventory()
+    
+    # Update existing devices with the latest scan results
+    updated_devices = collections.defaultdict(list)
+    for device in devices:
+        updated_devices[device['network']].append({
+            'ip': device['ip'],
+            'mac': device['mac'],
+            'hostname': device['hostname'],
+            'comment': '',
+            'keep': 'False'
+        })
+    
+    # Write the updated devices to the inventory file
+    try:
+        with open(inventory_file, 'w') as f:
+            f.write("Network,IP Address,MAC Address,Hostname,Comment,Keep\n")
+            for network, devices in updated_devices.items():
+                for device in devices:
+                    f.write(f"{network},{device['ip']},{device['mac']},{device['hostname']},{device['comment']},{device['keep']}\n")
+        print(f"Inventory updated in {inventory_file}")
+    except IOError as e:
+        print(f"Error updating inventory in {inventory_file}: {e}")
 
 def read_config():
     """Read configuration settings from settings.ini."""
@@ -123,7 +168,9 @@ def run_discovery():
         print(f"Starting discovery for network: {network}")
         devices = discover_network(network, num_workers)
         all_devices.extend(devices)
-        save_inventory(devices, inventory_file)
+    
+    # Update the inventory file with the latest devices
+    update_inventory(all_devices, inventory_file)
     
     print("Discovery complete for all networks.")
     return all_devices

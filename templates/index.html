@@ -3,67 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Inventory Dashboard</title>
+    <title>Inventory Overview</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Network Inventory Dashboard</h1>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="{{ url_for('networks') }}">Manage Networks</a></li>
-                    <li><a href="{{ url_for('view_inventory') }}">View Inventory</a></li>
-                    <li><a href="{{ url_for('run_discovery_now') }}">Discovery All Now</a></li>
-                </ul>
-            </nav>
-        </header>
-        <main>
-            <h2>Inventory Overview</h2>
-            <div class="filter-container">
-                <div class="filter-label">Filter:</div>
-                <div class="filter-options">
-                    <div class="network-menu">
-                        {% for network, address in network_name_mapping.items() %}
-                            <a href="{{ url_for('index', network=address) }}" class="{{ 'selected' if network == selected_network else '' }}">
-                                {{ network_name_mapping.get(network, network) }} - {{ network }}
-                            </a>
-                        {% endfor %}
-                    </div>
+    <header>
+        <h1>Inventory Management</h1>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('networks') }}">Manage Networks</a></li>
+                <li><a href="{{ url_for('view_inventory') }}">View Inventory</a></li>
+                <li><a href="{{ url_for('run_discovery_now') }}">Run Discovery</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <h2>Inventory Overview</h2>
+        <div class="filter-container">
+            <div class="filter-label">Filter:</div>
+            <div class="filter-options">
+                <div class="network-menu">
+                    {% for network, address in network_name_mapping.items() %}
+                        <a href="{{ url_for('index', network=address) }}" class="{{ 'selected' if network == selected_network else '' }}">
+                            {{ network_name_mapping.get(network, network) }} - {{ network }}
+                        </a>
+                    {% endfor %}
                 </div>
             </div>
-            {% if devices_by_network %}
-                <table>
-                    <thead>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Network</th>
+                    <th>IP Address</th>
+                    <th>MAC Address</th>
+                    <th>Hostname</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for network, devices in devices_by_network.items() %}
+                    <tr>
+                        <td colspan="5"><strong>{{ network_name_mapping.get(network, network) }}</strong></td>
+                    </tr>
+                    {% for device in devices %}
                         <tr>
-                            <th>Network Name (CIDR)</th>
-                            <th>IP Address</th>
-                            <th>MAC Address</th>
-                            <th>Hostname</th>
+                            <td></td>
+                            <td>{{ device.ip }}</td>
+                            <td>{{ device.mac }}</td>
+                            <td>{{ device.hostname }}</td>
+                            <td>
+                                <form action="{{ url_for('update_comment', ip=device['ip']) }}" method="POST" style="display: flex; align-items: center;">
+                                    <input type="text" name="comment" value="{{ device['comment'] }}" placeholder="Add comment" style="margin-right: 5px;">
+                                    <button type="submit" class="icon-button">
+                                        <img src="{{ url_for('static', filename='icons/save.png') }}" alt="Save" class="icon">
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <form action="{{ url_for('toggle_keep', ip=device['ip']) }}" method="POST">
+                                    <input type="checkbox" name="keep" {% if device.get('keep') == 'true' %} checked {% endif %} onclick="this.form.submit()">
+                                </form>
+                            </td>
+                            <td>
+                                <form action="{{ url_for('delete_device', ip=device['ip']) }}" method="POST">
+                                    <button type="submit" class="icon-button">
+                                        <img src="{{ url_for('static', filename='icons/delete.png') }}" alt="Delete" class="icon">
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for network, devices in devices_by_network.items() %}
-                            <tr>
-                                <td colspan="4">
-                                    <strong>{{ network_name_mapping.get(network, network) }} ({{ network }})</strong>
-                                </td>
-                            </tr>
-                            {% for device in devices %}
-                                <tr>
-                                    <td></td>
-                                    <td>{{ device.ip }}</td>
-                                    <td>{{ device.mac }}</td>
-                                    <td>{{ device.hostname }}</td>
-                                </tr>
-                            {% endfor %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>No inventory data available.</p>
-            {% endif %}
-        </main>
-    </div>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
 </body>
 </html>

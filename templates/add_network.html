@@ -7,23 +7,26 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Add Network</h1>
-            <nav>
-                <a href="{{ url_for('networks') }}" class="back-home">Back to Networks</a> | 
-				<a href="{{ url_for('index') }}" class="back-home">Back Home</a>
-            </nav>
-        </header>
-        <main>
-            <form method="POST">
-                <label for="network_name">Network Name:</label>
-                <input type="text" id="network_name" name="network_name" required>
-                <label for="network_address">Network Address (CIDR):</label>
-                <input type="text" id="network_address" name="network_address" required>
-                <button type="submit">Add Network</button>
-            </form>
-        </main>
-    </div>
+    <header>
+        <h1>Inventory Management</h1>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('networks') }}">Manage Networks</a></li>
+                <li><a href="{{ url_for('view_inventory') }}">View Inventory</a></li>
+                <li><a href="{{ url_for('run_discovery_now') }}">Run Discovery</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <h2>Add Network</h2>
+        <form action="{{ url_for('add_network') }}" method="post">
+            <label for="network_name">Network Name:</label>
+            <input type="text" id="network_name" name="network_name" required>
+            <label for="network_address">Network Address (CIDR):</label>
+            <input type="text" id="network_address" name="network_address" required>
+            <button type="submit">Add Network</button>
+        </form>
+    </main>
 </body>
 </html>

@@ -1,4 +1,23 @@
-/* General Styles */
+/* Additional Styles for Discover All Button */
+.discover-container {
+    margin-bottom: 20px;
+}
+
+#discover-all-btn {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#discover-all-btn:hover {
+    background-color: #218838;
+}
+
+/* Existing Styles */
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
@@ -24,6 +43,7 @@ header {
 header h1 {
     margin: 0;
 }
+
 
 nav {
     margin: 10px 0;
@@ -58,7 +78,6 @@ main {
     padding: 20px;
 }
 
-/* Filter Container */
 .filter-container {
     display: flex;
     align-items: center;
@@ -66,57 +85,33 @@ main {
 }
 
 .filter-label {
-    margin-right: 10px;
     font-weight: bold;
+    margin-right: 10px;
 }
 
-/* Filter Options */
 .filter-options {
     display: flex;
-    align-items: center;
-}
-
-.network-menu {
-    display: flex;
-    flex-wrap: wrap;
 }
 
 .network-menu a {
     margin-right: 10px;
-    padding: 5px 10px;
-    background-color: #007bff;
-    color: #fff;
+    color: #007bff;
     text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.3s, color 0.3s;
 }
 
 .network-menu a.selected {
-    background-color: #0056b3;
+    font-weight: bold;
+    color: #333;
 }
 
-.network-menu a:hover {
-    background-color: #0056b3;
+.network-section {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #fff;
 }
 
-/* Regular Links */
-a {
-    color: #007bff;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-a:hover {
-    color: #0056b3;
-    text-decoration: underline;
-}
-
-/* Table Styles */
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
 
 table th, table td {
     padding: 12px;
@@ -140,24 +135,73 @@ h2, h3 {
     color: #333;
 }
 
-
-/* New styles for the filter and submenu *//* Filter Container */
-.filter-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
+.comment-input {
+    width: 80%;
+    padding: 5px;
+    margin-bottom: 5px;
 }
 
-/* Filter Label */
-.filter-label {
+.device-actions {
+    display: flex;
+    align-items: center;
+}
+
+.device-actions .keep-checkbox {
     margin-right: 10px;
+}
+
+.device-actions .icon {
+    cursor: pointer;
+    font-size: 20px;
+    margin-left: 10px;
+}
+
+.device-actions .icon:hover {
+    color: #007bff;
+}
+
+
+
+/* New styles for icons */
+.icon-button {
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.icon-button img {
+    width: 20px; /* Adjust size as needed */
+    height: auto;
+    margin-right: 5px; /* Space between icon and text */
+}
+
+.icon-button .icon-label {
+    vertical-align: middle;
+    font-size: 14px; /* Adjust text size as needed */
+    color: #007bff;
+    text-decoration: none;
     font-weight: bold;
 }
 
-/* Filter Options */
+.icon-button .icon-label:hover {
+    color: #0056b3;
+}
+
+.filter-container {
+    margin-bottom: 20px;
+}
+
+.filter-label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
 .filter-options {
     display: flex;
     align-items: center;
+    gap: 10px;
 }
 
 .network-menu {
@@ -166,19 +210,15 @@ h2, h3 {
 }
 
 .network-menu a {
-    margin-right: 10px;
     padding: 5px 10px;
-    background-color: #007bff;
-    color: #fff;
-    text-decoration: none;
+    background-color: #e9ecef;
+    color: #333;
     border-radius: 5px;
-    font-weight: bold;
+    text-decoration: none;
+    margin: 5px;
 }
 
 .network-menu a.selected {
-    background-color: #0056b3;
-}
-
-.network-menu a:hover {
-    background-color: #0056b3;
+    background-color: #007bff;
+    color: #fff;
 }
