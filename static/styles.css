@@ -1,4 +1,4 @@
-/* styles.css */
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
@@ -58,14 +58,61 @@ main {
     padding: 20px;
 }
 
-.network-section {
-    margin: 20px 0;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: #fff;
+/* Filter Container */
+.filter-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
+.filter-label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+/* Filter Options */
+.filter-options {
+    display: flex;
+    align-items: center;
+}
+
+.network-menu {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.network-menu a {
+    margin-right: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.network-menu a.selected {
+    background-color: #0056b3;
+}
+
+.network-menu a:hover {
+    background-color: #0056b3;
+}
+
+/* Regular Links */
+a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Table Styles */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -91,4 +138,47 @@ table tr:hover {
 
 h2, h3 {
     color: #333;
+}
+
+
+/* New styles for the filter and submenu *//* Filter Container */
+.filter-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Filter Label */
+.filter-label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+/* Filter Options */
+.filter-options {
+    display: flex;
+    align-items: center;
+}
+
+.network-menu {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.network-menu a {
+    margin-right: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.network-menu a.selected {
+    background-color: #0056b3;
+}
+
+.network-menu a:hover {
+    background-color: #0056b3;
 }

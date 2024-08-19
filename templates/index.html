@@ -20,21 +20,34 @@
         </header>
         <main>
             <h2>Inventory Overview</h2>
+            <div class="filter-container">
+                <div class="filter-label">Filter:</div>
+                <div class="filter-options">
+                    <div class="network-menu">
+                        {% for network, address in network_name_mapping.items() %}
+                            <a href="{{ url_for('index', network=address) }}" class="{{ 'selected' if network == selected_network else '' }}">
+                                {{ network_name_mapping.get(network, network) }} - {{ network }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
             {% if devices_by_network %}
                 <table>
                     <thead>
                         <tr>
-                            <th>Network</th>
+                            <th>Network Name (CIDR)</th>
                             <th>IP Address</th>
                             <th>MAC Address</th>
                             <th>Hostname</th>
                         </tr>
                     </thead>
                     <tbody>
-                         {% for network, devices in devices_by_network.items() %}
-                            {% set network_name = network_name_mapping.get(network, network) %}
+                        {% for network, devices in devices_by_network.items() %}
                             <tr>
-                                <td colspan="4"><strong>{{ network_name }} - {{ network }}</strong></td>
+                                <td colspan="4">
+                                    <strong>{{ network_name_mapping.get(network, network) }} ({{ network }})</strong>
+                                </td>
                             </tr>
                             {% for device in devices %}
                                 <tr>

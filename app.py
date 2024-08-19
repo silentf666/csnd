@@ -1,3 +1,6 @@
+
+
+
 from flask import Flask, render_template, request, redirect, url_for
 import csv
 import collections
@@ -77,11 +80,22 @@ def index():
         print("Inventory file not found.")
     
     # Create a mapping of CIDR to network names
-    network_name_mapping = {v: k for k, v in load_config().items('networks')}
+    network_name_mapping = {network: get_network_name_mapping(config_file_path, network) for network in devices_by_network.keys()}
     
-    # Pass the mapping and devices to the template
-    return render_template('index.html', devices_by_network=devices_by_network, network_name_mapping=network_name_mapping)
-
+    # Get the list of defined networks
+    defined_networks = read_networks()
+    
+    # Get the selected network from query parameters
+    selected_network = request.args.get('network')
+    
+    # Filter devices based on the selected network
+    if selected_network and selected_network in devices_by_network:
+        filtered_devices = {selected_network: devices_by_network[selected_network]}
+    else:
+        filtered_devices = devices_by_network
+    
+    # Pass the mapping, devices, defined networks, and selected network to the template
+    return render_template('index.html', devices_by_network=filtered_devices, network_name_mapping=network_name_mapping, defined_networks=defined_networks, selected_network=selected_network)
 
 @app.route('/networks', methods=['GET'])
 def networks():
