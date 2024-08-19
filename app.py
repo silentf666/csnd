@@ -25,26 +25,63 @@ def load_config():
     else:
         config.read(config_file_path)
     return config
+    
+def read_networks():
+    config = configparser.ConfigParser()
+    config.read(config_file_path)
+    networks = dict(config.items('networks'))
+    return networks
+    
+def save_networks(networks):
+    config = configparser.ConfigParser()
+    config.read(config_file_path)
+    config['networks'] = networks
+    with open(config_file_path, 'w') as configfile:
+        config.write(configfile)
+
+def get_network_name_mapping(config_file_path, network_to_translate):
+    """
+    Translate a network CIDR to its corresponding network name based on the configuration file.
+
+    Args:
+        config_file_path (str): Path to the configuration file.
+        network_to_translate (str): The network CIDR to be translated.
+
+    Returns:
+        str: The network name associated with the given CIDR, or the CIDR itself if no name is found.
+    """
+    config = configparser.ConfigParser()
+    config.read(config_file_path)
+    
+    # Check if 'networks' section exists
+    if 'networks' in config:
+        # Reverse the mapping from CIDR to name
+        network_mappings = {v: k for k, v in config.items('networks')}
+        
+        # Return the network name if found, otherwise return the CIDR itself
+        return network_mappings.get(network_to_translate, network_to_translate)
+    
+    # Return the CIDR itself if the 'networks' section is not present
+    return network_to_translate
 
 @app.route('/')
 def index():
     # Load inventory data from file
-    devices_by_network = {}
+    devices_by_network = collections.defaultdict(list)
     try:
         with open('data/inventory.txt', 'r') as f:
-            for line in f:
-                network, ip, mac, hostname = line.strip().split(',', 3)
-                if network not in devices_by_network:
-                    devices_by_network[network] = []
-                devices_by_network[network].append({
-                    'ip': ip,
-                    'mac': mac,
-                    'hostname': hostname
-                })
+            reader = csv.DictReader(f, fieldnames=['network', 'ip', 'mac', 'hostname'])
+            for row in reader:
+                devices_by_network[row['network']].append(row)
     except FileNotFoundError:
-        devices_by_network = {}
+        print("Inventory file not found.")
+    
+    # Create a mapping of CIDR to network names
+    network_name_mapping = {v: k for k, v in load_config().items('networks')}
+    
+    # Pass the mapping and devices to the template
+    return render_template('index.html', devices_by_network=devices_by_network, network_name_mapping=network_name_mapping)
 
-    return render_template('index.html', devices_by_network=devices_by_network)
 
 @app.route('/networks', methods=['GET'])
 def networks():
@@ -54,44 +91,29 @@ def networks():
 
 @app.route('/add_network', methods=['GET', 'POST'])
 def add_network():
-    config = load_config()
     if request.method == 'POST':
         network_name = request.form['network_name']
         network_address = request.form['network_address']
-        if 'networks' not in config:
-            config['networks'] = {}
-
-        # Check if the network is already in the configuration
-        if network_name in config['networks']:
-            return render_template('add_network.html', message=f"Network {network_name} already exists!")
-
-        # Add the new network
-        config['networks'][network_name] = network_address
-        with open(config_file_path, 'w') as configfile:
-            config.write(configfile)
+        networks = read_networks()
+        networks[network_name] = network_address
+        save_networks(networks)
         return redirect(url_for('networks'))
     return render_template('add_network.html')
 
 @app.route('/edit_network/<network_name>', methods=['GET', 'POST'])
 def edit_network(network_name):
-    config = load_config()
-    networks = dict(config.items('networks'))
-
+    networks = read_networks()
     if request.method == 'POST':
         new_network_name = request.form['network_name']
         network_address = request.form['network_address']
-
         if new_network_name != network_name:
             del networks[network_name]
             networks[new_network_name] = network_address
         else:
             networks[network_name] = network_address
-
-        config['networks'] = networks
-        with open(config_file_path, 'w') as configfile:
-            config.write(configfile)
+        save_networks(networks)
         return redirect(url_for('networks'))
-
+    
     network_address = networks.get(network_name, '')
     return render_template('edit_network.html', network_name=network_name, network_address=network_address)
 

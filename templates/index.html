@@ -12,9 +12,9 @@
             <h1>Network Inventory Dashboard</h1>
             <nav>
                 <ul class="nav-links">
-                    <li><a href="{{ url_for('networks') }}">Networks</a></li>
+                    <li><a href="{{ url_for('networks') }}">Manage Networks</a></li>
                     <li><a href="{{ url_for('view_inventory') }}">View Inventory</a></li>
-                    <li><a href="{{ url_for('run_discovery_now') }}">Run Discovery Now</a></li>
+                    <li><a href="{{ url_for('run_discovery_now') }}">Discovery All Now</a></li>
                 </ul>
             </nav>
         </header>
@@ -31,9 +31,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for network, devices in devices_by_network.items() %}
+                         {% for network, devices in devices_by_network.items() %}
+                            {% set network_name = network_name_mapping.get(network, network) %}
                             <tr>
-                                <td colspan="4"><strong>{{ network }}</strong></td>
+                                <td colspan="4"><strong>{{ network_name }} - {{ network }}</strong></td>
                             </tr>
                             {% for device in devices %}
                                 <tr>
