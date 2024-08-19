@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Files</title>
+    <title>View Scan - {{ filename }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -19,17 +19,9 @@
         </nav>
     </header>
     <main class="container">
-        <h2>Scan Files</h2>
-        <div class="scan-list">
-            <h3>Available Scan Files</h3>
-            <ul>
-                {% for scan_file in scan_files %}
-                    <li>
-                        <a href="{{ url_for('view_scan', filename=scan_file) }}">{{ scan_file }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+        <h2>Scan File: {{ filename }}</h2>
+        <pre>{{ content }}</pre>
+        <a href="{{ url_for('index') }}" class="button">Back to Scan List</a>
     </main>
 </body>
 </html>

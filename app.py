@@ -9,12 +9,21 @@ from discover import load_inventory, save_inventory, run_discovery
 import threading
 import time
 import schedule
+from datetime import datetime
 
 app = Flask(__name__)
 config_file_path = 'config/settings.ini'
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+SCAN_DIR = 'data/scans'
+
+def ensure_scan_dir_exists():
+    """ Ensure the scans directory exists. """
+    if not os.path.exists(SCAN_DIR):
+        os.makedirs(SCAN_DIR)
+
 
 
 @app.route('/delete_device/<ip>', methods=['POST'])
@@ -121,31 +130,37 @@ def get_network_name_mapping(config_file_path):
         network_name_mapping = {v: k for k, v in config.items('networks')}
     
     return network_name_mapping
-
 @app.route('/')
 def index():
-    # Load inventory data from file
-    devices_by_network = collections.defaultdict(list)
+    ensure_scan_dir_exists()
+    
+    # Load all scan files from the scans directory
+    scan_files = sorted(os.listdir(SCAN_DIR), reverse=True)
+
+    return render_template('index.html', scan_files=scan_files)
+
+def save_latest_scans(devices, file_path):
+    """ Save the latest scan results to a file. """
     try:
-        with open('data/inventory.txt', 'r') as f:
-            reader = csv.DictReader(f, fieldnames=['network', 'ip', 'mac', 'hostname', 'comment', 'keep'])
+        with open(file_path, 'w') as f:
+            f.write("Network,IP Address,MAC Address,Hostname\n")
+            for device in devices:
+                f.write(f"{device['network']},{device['ip']},{device['mac']},{device['hostname']}\n")
+        print(f"Latest scans saved to {file_path}")
+    except IOError as e:
+        print(f"Error saving latest scans to {file_path}: {e}")
+
+def load_scans_from_file(file_path):
+    """ Load scan results from a file. """
+    scans = collections.defaultdict(list)
+    try:
+        with open(file_path, 'r') as f:
+            reader = csv.DictReader(f, fieldnames=['network', 'ip', 'mac', 'hostname'])
             for row in reader:
-                devices_by_network[row['network']].append(row)
+                scans[row['network']].append(row)
     except FileNotFoundError:
-        print("Inventory file not found.")
-    
-    # Create a mapping of CIDR to network names
-    network_name_mapping = {v: k for k, v in load_config().items('networks')}
-    
-    # Get the selected network from query parameters
-    selected_network = request.args.get('network')
-    
-    # Filter devices based on the selected network
-    if selected_network:
-        devices_by_network = {network: devices for network, devices in devices_by_network.items() if network == selected_network}
-    
-    # Pass the mapping and devices to the template
-    return render_template('index.html', devices_by_network=devices_by_network, network_name_mapping=network_name_mapping, selected_network=selected_network)
+        print(f"File {file_path} not found.")
+    return scans
 
 
 @app.route('/networks', methods=['GET'])
@@ -204,6 +219,17 @@ def view_inventory():
     
     return render_template('view_inventory.html', devices_by_network=devices_by_network, network_name_mapping=network_name_mapping, selected_network=selected_network)
 
+@app.route('/view_scan/<filename>')
+def view_scan(filename):
+    file_path = os.path.join(SCAN_DIR, filename)
+    
+    if not os.path.exists(file_path):
+        return "File not found", 404
+
+    with open(file_path, 'r') as file:
+        content = file.read()
+
+    return render_template('view_scan.html', filename=filename, content=content)
 
 @app.route('/run_discovery_now')
 def run_discovery_now():

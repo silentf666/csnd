@@ -85,14 +85,18 @@ def discover_network(network, num_workers):
     return devices
 
 def save_inventory(devices_by_network):
-    """ Save the updated inventory to a file. """
+    """ Save the updated inventory to a file, ensuring no multiple headers. """
     print(f"Saving results to {inventory_file}...")
+    
+    # Determine if the file already exists
     file_exists = os.path.isfile(inventory_file)
+    
     try:
-        with open(inventory_file, "w") as f:
+        with open(inventory_file, 'w') as f:
+            # Write the header only if the file does not already exist
             if not file_exists:
-                # Write headers if file does not exist
                 f.write("Network,IP Address,MAC Address,Hostname,Comment,Keep\n")
+                
             for network, devices in devices_by_network.items():
                 for device in devices:
                     f.write(f"{network},{device['ip']},{device['mac']},{device['hostname']},{device['comment']},{device['keep']}\n")
@@ -111,12 +115,14 @@ def load_inventory():
         with open(inventory_file, 'r') as f:
             reader = csv.DictReader(f, fieldnames=['network', 'ip', 'mac', 'hostname', 'comment', 'keep'])
             for row in reader:
-                # Use the 'keep' field to mark devices that should be kept
-                devices_by_network[row['network']].append(row)
+                if row['network'] != 'Network':  # Skip header rows
+                    devices_by_network[row['network']].append(row)
     except IOError as e:
         print(f"Error reading inventory file: {e}")
     
     return devices_by_network
+import collections
+
 def update_inventory(devices, inventory_file):
     """ Update the inventory file with the current devices, preserving `keep=True` status. """
     
@@ -154,14 +160,15 @@ def update_inventory(devices, inventory_file):
 
     # Combine devices with keep=True and updated non-keep devices
     updated_devices = collections.defaultdict(list)
-    for network, devices_list in keep_true_devices.items():
-        updated_devices[network].extend(devices_list.values())
+    for network, devices_dict in keep_true_devices.items():
+        updated_devices[network].extend(devices_dict.values())
     for network, devices_list in non_keep_devices.items():
         updated_devices[network].extend(devices_list)
 
     # Write the updated devices to the inventory file
     try:
         with open(inventory_file, 'w') as f:
+            # Write the header once
             f.write("Network,IP Address,MAC Address,Hostname,Comment,Keep\n")
             for network, devices_list in updated_devices.items():
                 for device in devices_list:
@@ -169,6 +176,7 @@ def update_inventory(devices, inventory_file):
         print(f"Inventory updated in {inventory_file}")
     except IOError as e:
         print(f"Error updating inventory in {inventory_file}: {e}")
+
 
 
 def read_config():
