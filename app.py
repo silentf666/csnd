@@ -1,5 +1,8 @@
-
-
+## duplicates should not be added
+## if a new detected device contains different info then the old, replace the old
+## protect "marked" entries from modification, deleten, overwriting
+## add and edit comments for devices
+## scan specific subnets instead all networks
 
 from flask import Flask, render_template, request, redirect, url_for
 import csv

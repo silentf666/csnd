@@ -11,14 +11,15 @@
         <header>
             <h1>Add Network</h1>
             <nav>
-                <a href="{{ url_for('networks') }}" class="back-home">Back to Networks</a>
+                <a href="{{ url_for('networks') }}" class="back-home">Back to Networks</a> | 
+				<a href="{{ url_for('index') }}" class="back-home">Back Home</a>
             </nav>
         </header>
         <main>
             <form method="POST">
                 <label for="network_name">Network Name:</label>
                 <input type="text" id="network_name" name="network_name" required>
-                <label for="network_address">Network Address:</label>
+                <label for="network_address">Network Address (CIDR):</label>
                 <input type="text" id="network_address" name="network_address" required>
                 <button type="submit">Add Network</button>
             </form>
