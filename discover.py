@@ -118,31 +118,58 @@ def load_inventory():
     
     return devices_by_network
 def update_inventory(devices, inventory_file):
-    """ Update the inventory file with the current devices. """
+    """ Update the inventory file with the current devices, preserving `keep=True` status. """
+    
     # Load existing inventory
     existing_devices = load_inventory()
     
-    # Update existing devices with the latest scan results
-    updated_devices = collections.defaultdict(list)
-    for device in devices:
-        updated_devices[device['network']].append({
-            'ip': device['ip'],
-            'mac': device['mac'],
-            'hostname': device['hostname'],
-            'comment': '',
-            'keep': 'False'
-        })
+    # Separate devices with keep=True from those with keep=False
+    keep_true_devices = collections.defaultdict(dict)
+    non_keep_devices = collections.defaultdict(list)
     
+    for network, devices_list in existing_devices.items():
+        for device in devices_list:
+            if device['keep'] == 'True':
+                keep_true_devices[network][device['ip']] = device
+            else:
+                non_keep_devices[network].append(device)
+
+    # Update non-keep devices with the latest scan results
+    for device in devices:
+        network = device['network']
+        ip = device['ip']
+        if ip in keep_true_devices.get(network, {}):
+            # Device exists and keep=True, don't modify
+            continue
+        else:
+            # Device doesn't exist or keep=False, replace or add
+            non_keep_devices[network] = [d for d in non_keep_devices[network] if d['ip'] != ip]
+            non_keep_devices[network].append({
+                'ip': device['ip'],
+                'mac': device['mac'],
+                'hostname': device['hostname'],
+                'comment': '',
+                'keep': 'False'
+            })
+
+    # Combine devices with keep=True and updated non-keep devices
+    updated_devices = collections.defaultdict(list)
+    for network, devices_list in keep_true_devices.items():
+        updated_devices[network].extend(devices_list.values())
+    for network, devices_list in non_keep_devices.items():
+        updated_devices[network].extend(devices_list)
+
     # Write the updated devices to the inventory file
     try:
         with open(inventory_file, 'w') as f:
             f.write("Network,IP Address,MAC Address,Hostname,Comment,Keep\n")
-            for network, devices in updated_devices.items():
-                for device in devices:
+            for network, devices_list in updated_devices.items():
+                for device in devices_list:
                     f.write(f"{network},{device['ip']},{device['mac']},{device['hostname']},{device['comment']},{device['keep']}\n")
         print(f"Inventory updated in {inventory_file}")
     except IOError as e:
         print(f"Error updating inventory in {inventory_file}: {e}")
+
 
 def read_config():
     """Read configuration settings from settings.ini."""
