@@ -8,11 +8,11 @@
 </head>
 <body>
     <header>
-        <h1>Inventory Management</h1>
+        <h1>Network Scanner Dashboard</h1>
         <nav>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('networks') }}">Manage Networks</a></li>
+                <li><a href="{{ url_for('networks') }}" class="active">Manage Networks</a></li>
                 <li><a href="{{ url_for('view_inventory') }}">View Inventory</a></li>
                 <li><a href="{{ url_for('run_discovery_now') }}">Run Discovery</a></li>
             </ul>
@@ -20,7 +20,7 @@
     </header>
     <main class="container">
         <h2>Manage Networks</h2>
-        <a href="{{ url_for('add_network') }}" class="nav-links">Add New Network</a>
+        <a href="{{ url_for('add_network') }}" class="button">Add New Network</a>
         <table>
             <thead>
                 <tr>
@@ -35,15 +35,11 @@
                         <td>{{ network_name }}</td>
                         <td>{{ network_address }}</td>
                         <td>
-						Edit <a href="{{ url_for('edit_network', network_name=network_name) }}" title="Edit">
-							<button type="submit" class="icon-button">
-                            <img src="{{ url_for('static', filename='icons/edit.png') }}" class="icon" alt="Edit" />
-							</button>
+                            <a href="{{ url_for('edit_network', network_name=network_name) }}" class="icon-button" title="Edit">
+                                <img src="{{ url_for('static', filename='icons/edit.png') }}" class="icon" alt="Edit" />
                             </a>
-						Remove <a href="{{ url_for('remove_network', network_name=network_name) }}" title="Remove">
-								<button type="submit" class="icon-button">
+                            <a href="{{ url_for('remove_network', network_name=network_name) }}" class="icon-button" title="Remove">
                                 <img src="{{ url_for('static', filename='icons/remove.png') }}" class="icon" alt="Remove" />
-								</button>
                             </a>
                         </td>
                     </tr>
