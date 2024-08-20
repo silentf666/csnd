@@ -18,6 +18,8 @@ SCAN_DIR = config['settings']['SCAN_DIR']
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Global state to track if a scan is running
+scan_state = {'running': False, 'result': None}
 
 
 
@@ -139,8 +141,6 @@ def index():
     
     # Load all scan files from the scans directory
     scan_files = sorted(os.listdir(SCAN_DIR), reverse=True)
-    print("SCAN DIR:", SCAN_DIR)
-    print("SCANNNNNNNNN FILES:", scan_files)
 
     return render_template('index.html', scan_files=scan_files)
 
@@ -229,11 +229,18 @@ def view_scan(filename):
 
 @app.route('/run_discovery_now')
 def run_discovery_now():
-    # Run the network discovery and get devices
-    devices = run_discovery()
+    global scan_state
+    if scan_state['running']:
+        return redirect(url_for('index'))  # Prevent duplicate scans if one is already running
 
-    # Render the results in a template
-    return render_template('scan_results.html', devices=devices)
+    # Start a background thread for discovery
+    def discovery_thread():
+        scan_state['running'] = True
+        scan_state['result'] = run_discovery()
+        scan_state['running'] = False
+    
+    threading.Thread(target=discovery_thread).start()
+    return redirect(url_for('index'))
 
 def read_interval_from_config():
     """Read the scan interval from settings.ini."""
