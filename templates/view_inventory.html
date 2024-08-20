@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Overview</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Style for rows where keep is True */
+        .highlight-row {
+            background-color: #d4edda; /* Light green background */
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -51,25 +57,17 @@
                             <td colspan="5"><strong>{{ network_name_mapping.get(network, network) }}</strong></td>
                         </tr>
                         {% for device in devices %}
-                            <tr>
+                            <!-- Highlight row if keep is True -->
+                            <tr {% if device['keep'] == 'True' %} class="highlight-row"{% endif %}>
                                 <td></td>
                                 <td>{{ device['ip'] }}</td>
                                 <td>{{ device['mac'] }}</td>
                                 <td>{{ device['hostname'] }}</td>
                                 <td>
                                     <form action="{{ url_for('update_comment', ip=device['ip']) }}" method="POST" style="display: flex; align-items: center;">
-                                        <!-- Input for comment -->
                                         <input type="text" name="comment" value="{{ device['comment'] }}" placeholder="Add comment" style="margin-right: 5px;">
-                                        
-                                        <!-- Checkbox for keep status -->
-                                        <input type="checkbox" name="keep" value="True"
-                                        {% if device['keep'] == 'True' %} checked {% endif %}
-                                        onchange="this.form.submit()">
-                                        
-                                        <!-- Hidden input to handle unchecked state -->
+                                        <input type="checkbox" name="keep" value="True" {% if device['keep'] == 'True' %} checked {% endif %} onchange="this.form.submit()">
                                         <input type="hidden" name="keep" value="False">
-                                        
-                                        <!-- Submit button -->
                                         <button type="submit" class="icon-button">
                                             <img src="{{ url_for('static', filename='icons/save.png') }}" alt="Save" class="icon">
                                         </button>

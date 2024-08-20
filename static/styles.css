@@ -1,4 +1,8 @@
 /* Additional Styles for Discover All Button */
+
+.highlight-row {
+     background-color: #d4edda !important;
+}
 .discover-container {
     margin-bottom: 20px;
 }
@@ -222,3 +226,4 @@ h2, h3 {
     background-color: #007bff;
     color: #fff;
 }
+
