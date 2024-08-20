@@ -5,7 +5,7 @@ import collections
 import configparser
 import os
 import logging
-from discover import load_inventory, save_inventory, run_discovery
+from discover import load_inventory, save_inventory, run_discovery, read_config
 import threading
 import time
 import schedule
@@ -13,14 +13,17 @@ from datetime import datetime
 
 app = Flask(__name__)
 config_file_path = 'config/settings.ini'
+config = read_config()
+SCAN_DIR = config['settings']['SCAN_DIR']
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-SCAN_DIR = 'data/scans'
+
 
 def ensure_scan_dir_exists():
     """ Ensure the scans directory exists. """
+
     if not os.path.exists(SCAN_DIR):
         os.makedirs(SCAN_DIR)
 
@@ -136,19 +139,12 @@ def index():
     
     # Load all scan files from the scans directory
     scan_files = sorted(os.listdir(SCAN_DIR), reverse=True)
+    print("SCAN DIR:", SCAN_DIR)
+    print("SCANNNNNNNNN FILES:", scan_files)
 
     return render_template('index.html', scan_files=scan_files)
 
-def save_latest_scans(devices, file_path):
-    """ Save the latest scan results to a file. """
-    try:
-        with open(file_path, 'w') as f:
-            f.write("Network,IP Address,MAC Address,Hostname\n")
-            for device in devices:
-                f.write(f"{device['network']},{device['ip']},{device['mac']},{device['hostname']}\n")
-        print(f"Latest scans saved to {file_path}")
-    except IOError as e:
-        print(f"Error saving latest scans to {file_path}: {e}")
+
 
 def load_scans_from_file(file_path):
     """ Load scan results from a file. """

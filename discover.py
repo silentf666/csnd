@@ -6,8 +6,10 @@ import ipaddress
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import collections
 import csv
+from datetime import datetime
 
 inventory_file = 'data/inventory.txt'
+
 
 def resolve_hostname(ip):
     try:
@@ -184,6 +186,17 @@ def read_config():
     config = configparser.ConfigParser()
     config.read('config/settings.ini')
     return config
+    
+def save_latest_scans(devices, file_path):
+    """ Save the latest scan results to a file. """
+    try:
+        with open(file_path, 'w') as f:
+            f.write("Network,IP Address,MAC Address,Hostname\n")
+            for device in devices:
+                f.write(f"{device['network']},{device['ip']},{device['mac']},{device['hostname']}\n")
+        print(f"Latest scans saved to {file_path}")
+    except IOError as e:
+        print(f"Error saving latest scans to {file_path}: {e}")
 
 def run_discovery():
     """Perform network discovery and save results."""
@@ -193,6 +206,7 @@ def run_discovery():
     # Extract settings
     inventory_file = config['settings']['inventory_file']
     num_workers = int(config['settings'].get('workers', 10))  # Default to 10 workers if not specified
+    SCAN_DIR = config['settings']['SCAN_DIR']
     
     # Get the list of networks from the config
     networks = [value for key, value in config.items('networks')]
@@ -206,6 +220,12 @@ def run_discovery():
     
     # Update the inventory file with the latest devices
     update_inventory(all_devices, inventory_file)
+    
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    latest_scans_file = os.path.join(SCAN_DIR, f'scan_{timestamp}.txt')
+    
+    # Save the latest scans to a new file
+    save_latest_scans(all_devices, latest_scans_file)
     
     print("Discovery complete for all networks.")
     return all_devices
