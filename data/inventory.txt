@@ -2,9 +2,9 @@ Network,IP Address,MAC Address,Hostname,Comment,Keep
 192.168.0.0/24,192.168.0.240,c8:4f:86:22:a8:44,Unknown,,True
 192.168.0.0/24,192.168.0.241,e0:46:ee:2f:a0:13,Unknown,,True
 192.168.0.0/24,192.168.0.54,00:08:9b:f0:7c:a3,K-NAS01,NAS01,True
-192.168.0.0/24,192.168.0.51,74:56:3c:24:fa:d2,DESKTOP-CMF0GQ8.dk-lab.local,,True
 192.168.0.0/24,192.168.0.254,7c:5a:1c:8c:9d:52,Unknown,FW,True
 192.168.0.0/24,192.168.0.243,00:08:9b:f0:7c:a2,K-NAS01,,True
+192.168.0.0/24,192.168.0.51,74:56:3c:24:fa:d2,DESKTOP-CMF0GQ8.dk-lab.local,,False
 192.168.33.0/24,192.168.33.10,N/A,Unknown,,True
 192.168.33.0/24,192.168.33.243,N/A,K-NAS01,,True
 192.168.33.0/24,192.168.33.254,N/A,Unknown,,True

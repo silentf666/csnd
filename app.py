@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 import csv
 import collections
 import configparser
 import os
 import logging
-from discover import load_inventory, save_inventory, run_discovery, read_config
+from discover import load_inventory, save_inventory, run_discovery, read_config, get_scan_status, update_scan_status
 import threading
 import time
 import schedule
@@ -21,6 +21,9 @@ SCAN_HISTORY_AMOUNT = int(config['settings']['scan_history_files'])
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Global state to track if a scan is running
 scan_state = {'running': False, 'result': None}
+app_scan_status = get_scan_status()
+
+
 
 
 
@@ -136,6 +139,14 @@ def get_network_name_mapping(config_file_path):
         network_name_mapping = {v: k for k, v in config.items('networks')}
     
     return network_name_mapping
+
+@app.route('/scan_status')
+def app_get_scan_status():
+    global app_scan_status
+    app_scan_status = get_scan_status()
+    return jsonify(status=app_scan_status)
+    
+
 
 @app.route('/')
 def index():
@@ -259,7 +270,8 @@ def run_discovery_now():
     global scan_state
     if scan_state['running']:
         return redirect(url_for('index'))  # Prevent duplicate scans if one is already running
-
+ 
+    
     network = request.form.get('network')  # Get the network from the form submission (if any)
 
     def discovery_thread():

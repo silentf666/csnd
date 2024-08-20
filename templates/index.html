@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Scanner Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+	<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            function checkScanStatus() {
+                fetch('/scan_status')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('scan-status').innerText = data.status;
+                    });
+            }
+
+            // Check the scan status every 5 seconds
+            setInterval(checkScanStatus, 5000);
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -19,6 +33,8 @@
         </nav>
     </header>
     <main class="container">
+		<h2>System Status:</h2>
+			<div id="scan-status">Idle</div>
         <section id="new-devices">
             <h2>Newly Discovered Devices</h2>
             {% if new_devices %}

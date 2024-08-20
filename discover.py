@@ -10,6 +10,15 @@ from datetime import datetime
 
 inventory_file = 'data/inventory.txt'
 
+scan_status = "Idle..."
+
+def update_scan_status(val):
+    global scan_status
+    scan_status = val
+    
+def get_scan_status():
+    global scan_status
+    return scan_status
 
 def resolve_hostname(ip):
     try:
@@ -223,6 +232,7 @@ def save_latest_scans(devices, file_path, new_devices):
         print(f"Error saving latest scans to {file_path}: {e}")
 
 def run_discovery(network=False):
+    update_scan_status("Scan started...")
     """Perform network discovery. If a specific network is provided, scan only that network. Otherwise, scan all networks."""
     # Read configuration
     config = read_config()
@@ -238,24 +248,38 @@ def run_discovery(network=False):
     all_devices = []
 
     if network:  # If a specific network is provided
+        update_scan_status(f"Scanning network: {network}")
         print(f"Starting discovery for network: {network}")
         devices = discover_network(network, num_workers)
         all_devices.extend(devices)
     else:  # Scan all networks if no specific network is provided
+        update_scan_status("Scanning all networks")
         for net in networks:
             print(f"Starting discovery for network: {net}")
             devices = discover_network(net, num_workers)
             all_devices.extend(devices)
     
     # Update the inventory file with the latest devices
-    update_inventory(all_devices, inventory_file)
+    update_scan_status("Update Inventory")
+    # Update the inventory file and get the list of new devices without the keep flag
+    new_devices = update_inventory(all_devices, inventory_file)
+         # Save the new devices to a persistent file
+         
+    with open('data/new_devices.txt', 'w') as f:
+        for device in new_devices:
+            f.write(f"{device['network']},{device['ip']},{device['mac']},{device['hostname']}\n")
+    
+
+
     
     # Format the timestamp as day-month-time (e.g., 20-08-1530)
     timestamp = datetime.now().strftime('%d-%m-%H%M')
     latest_scans_file = os.path.join(SCAN_DIR, f'{timestamp}.txt')
     
     # Save the latest scans to a new file
-    save_latest_scans(all_devices, latest_scans_file)
-    
+    update_scan_status("Save results to files")
+    # Save the latest scans along with the list of newly detected devices
+    save_latest_scans(all_devices, latest_scans_file, new_devices)
+    update_scan_status("Discovery DONE")
     print("Discovery complete.")
     return all_devices
