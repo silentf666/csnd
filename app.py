@@ -15,6 +15,7 @@ app = Flask(__name__)
 config_file_path = 'config/settings.ini'
 config = read_config()
 SCAN_DIR = config['settings']['SCAN_DIR']
+SCAN_HISTORY_AMOUNT = int(config['settings']['scan_history_files'])
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -135,16 +136,42 @@ def get_network_name_mapping(config_file_path):
         network_name_mapping = {v: k for k, v in config.items('networks')}
     
     return network_name_mapping
+
 @app.route('/')
 def index():
+    
+    config = read_config()
+    networks = {key: value for key, value in config.items('networks')}  # Extract network names and addresses from config
+
+    #SCAN_HISTORY_AMOUNT = 50 files per default
     ensure_scan_dir_exists()
     
-    # Load all scan files from the scans directory
+    # Load all scan files from the scans directory and sort by newest
     scan_files = sorted(os.listdir(SCAN_DIR), reverse=True)
 
-    return render_template('index.html', scan_files=scan_files)
+    # Keep only the 50 most recent scan files
+    if len(scan_files) > SCAN_HISTORY_AMOUNT:
+        # Identify files that should be deleted
+        files_to_delete = scan_files[SCAN_HISTORY_AMOUNT:]
+        for file in files_to_delete:
+            os.remove(os.path.join(SCAN_DIR, file))
+        # Update the scan_files list after deletion
+        scan_files = scan_files[:SCAN_HISTORY_AMOUNT]
 
+    # Load the new devices from the file
+    new_devices = []
+    if os.path.exists('data/new_devices.txt'):
+        with open('data/new_devices.txt', 'r') as f:
+            new_devices = [line.strip() for line in f.readlines()]
 
+    return render_template('index.html', scan_files=scan_files, new_devices=new_devices, networks=networks)
+
+@app.route('/approve_new_devices', methods=['POST'])
+def approve_new_devices():
+    # Clear the new_devices.txt file
+    open('data/new_devices.txt', 'w').close()
+    
+    return redirect(url_for('index'))
 
 def load_scans_from_file(file_path):
     """ Load scan results from a file. """
@@ -227,16 +254,17 @@ def view_scan(filename):
 
     return render_template('view_scan.html', filename=filename, content=content)
 
-@app.route('/run_discovery_now')
+@app.route('/run_discovery_now', methods=['GET', 'POST'])
 def run_discovery_now():
     global scan_state
     if scan_state['running']:
         return redirect(url_for('index'))  # Prevent duplicate scans if one is already running
 
-    # Start a background thread for discovery
+    network = request.form.get('network')  # Get the network from the form submission (if any)
+
     def discovery_thread():
         scan_state['running'] = True
-        scan_state['result'] = run_discovery()
+        scan_state['result'] = run_discovery(network)  # Pass the network to the discovery function
         scan_state['running'] = False
     
     threading.Thread(target=discovery_thread).start()

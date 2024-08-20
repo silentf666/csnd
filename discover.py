@@ -123,10 +123,10 @@ def load_inventory():
         print(f"Error reading inventory file: {e}")
     
     return devices_by_network
-import collections
+
 
 def update_inventory(devices, inventory_file):
-    """ Update the inventory file with the current devices, preserving `keep=True` status. """
+    """Update the inventory file with the current devices, preserving `keep=True` status."""
     
     # Load existing inventory
     existing_devices = load_inventory()
@@ -142,6 +142,9 @@ def update_inventory(devices, inventory_file):
             else:
                 non_keep_devices[network].append(device)
 
+    # Track newly discovered devices without a 'keep' flag
+    newly_discovered_devices = []
+
     # Update non-keep devices with the latest scan results
     for device in devices:
         network = device['network']
@@ -152,13 +155,22 @@ def update_inventory(devices, inventory_file):
         else:
             # Device doesn't exist or keep=False, replace or add
             non_keep_devices[network] = [d for d in non_keep_devices[network] if d['ip'] != ip]
+
+            # Check if the device has no 'keep' flag
+            if device.get('keep') is None:
+                # Add to the list of newly discovered devices without the 'keep' flag
+                newly_discovered_devices.append(device)
+            
             non_keep_devices[network].append({
                 'ip': device['ip'],
                 'mac': device['mac'],
                 'hostname': device['hostname'],
                 'comment': '',
-                'keep': 'False'
+                'keep': 'False'  # Newly discovered devices default to keep=False
             })
+
+    print("NEW DEVICES")
+    print(newly_discovered_devices)
 
     # Combine devices with keep=True and updated non-keep devices
     updated_devices = collections.defaultdict(list)
@@ -178,7 +190,9 @@ def update_inventory(devices, inventory_file):
         print(f"Inventory updated in {inventory_file}")
     except IOError as e:
         print(f"Error updating inventory in {inventory_file}: {e}")
-
+    
+    # Return the list of newly discovered devices without the 'keep' flag
+    return newly_discovered_devices
 
 
 def read_config():
@@ -187,19 +201,29 @@ def read_config():
     config.read('config/settings.ini')
     return config
     
-def save_latest_scans(devices, file_path):
-    """ Save the latest scan results to a file. """
+def save_latest_scans(devices, file_path, new_devices):
+    """ Save the latest scan results to a file and include newly detected devices. """
     try:
         with open(file_path, 'w') as f:
+            # Write the main scan results
             f.write("Network,IP Address,MAC Address,Hostname\n")
             for device in devices:
                 f.write(f"{device['network']},{device['ip']},{device['mac']},{device['hostname']}\n")
+            
+            # Add a separator for the newly detected devices section
+            f.write("\n#NEW DETECTED DEVICES#\n")
+            if not new_devices:
+                f.write("No new devices detected.\n")
+            else:
+                for device in new_devices:
+                    f.write(f"{device['network']},{device['ip']},{device['mac']},{device['hostname']}\n")
+        
         print(f"Latest scans saved to {file_path}")
     except IOError as e:
         print(f"Error saving latest scans to {file_path}: {e}")
 
-def run_discovery():
-    """Perform network discovery and save results."""
+def run_discovery(network=False):
+    """Perform network discovery. If a specific network is provided, scan only that network. Otherwise, scan all networks."""
     # Read configuration
     config = read_config()
     
@@ -212,20 +236,26 @@ def run_discovery():
     networks = [value for key, value in config.items('networks')]
 
     all_devices = []
-    
-    for network in networks:
+
+    if network:  # If a specific network is provided
         print(f"Starting discovery for network: {network}")
         devices = discover_network(network, num_workers)
         all_devices.extend(devices)
+    else:  # Scan all networks if no specific network is provided
+        for net in networks:
+            print(f"Starting discovery for network: {net}")
+            devices = discover_network(net, num_workers)
+            all_devices.extend(devices)
     
     # Update the inventory file with the latest devices
     update_inventory(all_devices, inventory_file)
     
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    latest_scans_file = os.path.join(SCAN_DIR, f'scan_{timestamp}.txt')
+    # Format the timestamp as day-month-time (e.g., 20-08-1530)
+    timestamp = datetime.now().strftime('%d-%m-%H%M')
+    latest_scans_file = os.path.join(SCAN_DIR, f'{timestamp}.txt')
     
     # Save the latest scans to a new file
     save_latest_scans(all_devices, latest_scans_file)
     
-    print("Discovery complete for all networks.")
+    print("Discovery complete.")
     return all_devices

@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Files</title>
+    <title>Network Scanner Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <header>
-        <h1>Inventory Management</h1>
+        <h1>Network Scanner Dashboard</h1>
         <nav>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Home</a></li>
@@ -19,17 +19,42 @@
         </nav>
     </header>
     <main class="container">
-        <h2>Scan Files</h2>
-        <div class="scan-list">
-            <h3>Available Scan Files</h3>
-            <ul>
-                {% for scan_file in scan_files %}
-                    <li>
-                        <a href="{{ url_for('view_scan', filename=scan_file) }}">{{ scan_file }}</a>
-                    </li>
+        <section id="new-devices">
+            <h2>Newly Discovered Devices</h2>
+            {% if new_devices %}
+                <ul>
+                    {% for device in new_devices %}
+                        <li>{{ device }}</li>
+                    {% endfor %}
+                </ul>
+                <form action="{{ url_for('approve_new_devices') }}" method="POST">
+                    <button type="submit" class="button">Approve</button>
+                </form>
+            {% else %}
+                <p>No new devices detected.</p>
+            {% endif %}
+        </section>
+
+        <section id="network-scan">
+            <h2>Networks</h2>
+            <form action="{{ url_for('run_discovery_now') }}" method="post">
+                {% for network_name, network_address in networks.items() %}
+                    <div>
+                        <span>{{ network_name }} ({{ network_address }})</span>
+                        <button type="submit" name="network" value="{{ network_address }}" class="button">Scan This Network</button>
+                    </div>
+                {% endfor %}
+            </form>
+        </section>
+
+        <section id="scan-history">
+            <h2>Scan History</h2>
+            <ul class="scan-grid">
+                {% for scan in scan_files %}
+                    <li><a href="{{ url_for('view_scan', filename=scan) }}">{{ scan }}</a></li>
                 {% endfor %}
             </ul>
-        </div>
+        </section>
     </main>
 </body>
 </html>

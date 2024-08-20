@@ -1,27 +1,4 @@
-/* Additional Styles for Discover All Button */
-
-.highlight-row {
-     background-color: #d4edda !important;
-}
-.discover-container {
-    margin-bottom: 20px;
-}
-
-#discover-all-btn {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-#discover-all-btn:hover {
-    background-color: #218838;
-}
-
-/* Existing Styles */
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
@@ -47,7 +24,6 @@ header {
 header h1 {
     margin: 0;
 }
-
 
 nav {
     margin: 10px 0;
@@ -82,67 +58,69 @@ main {
     padding: 20px;
 }
 
-.filter-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
+/* New Devices Section */
+#new-devices ul {
+    list-style: none;
+    padding: 0;
 }
 
-.filter-label {
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-.filter-options {
-    display: flex;
-}
-
-.network-menu a {
-    margin-right: 10px;
-    color: #007bff;
-    text-decoration: none;
-}
-
-.network-menu a.selected {
-    font-weight: bold;
-    color: #333;
-}
-
-.network-section {
-    margin: 20px 0;
+#new-devices li {
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: #fff;
-}
-
-
-table th, table td {
-    padding: 12px;
-    text-align: left;
     border-bottom: 1px solid #ddd;
 }
 
-table th {
-    background: #f4f4f4;
+/* Network Scan Section */
+#network-scan {
+    margin: 20px 0;
 }
 
-table tr:nth-child(even) {
+#network-scan .button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+#network-scan .button:hover {
+    background-color: #0056b3;
+}
+
+/* Scan History Section */
+.scan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive grid */
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.scan-grid li {
     background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
 }
 
-table tr:hover {
-    background: #f1f1f1;
-}
-
-h2, h3 {
+.scan-grid li a {
+    text-decoration: none;
     color: #333;
 }
 
-.comment-input {
-    width: 80%;
-    padding: 5px;
-    margin-bottom: 5px;
+/* Miscellaneous */
+.highlight-row {
+    background-color: #d4edda !important;
+}
+
+.discover-container {
+    margin-bottom: 20px;
 }
 
 .device-actions {
@@ -164,9 +142,6 @@ h2, h3 {
     color: #007bff;
 }
 
-
-
-/* New styles for icons */
 .icon-button {
     display: inline-flex;
     align-items: center;
@@ -193,7 +168,41 @@ h2, h3 {
     color: #0056b3;
 }
 
+/* Table Styles */
+table th, table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background: #f4f4f4;
+}
+
+table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+table tr:hover {
+    background: #f1f1f1;
+}
+
+/* Heading Styles */
+h2, h3 {
+    color: #333;
+}
+
+/* Comment Input */
+.comment-input {
+    width: 80%;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+/* Filter Container */
 .filter-container {
+    display: flex;
+    align-items: center;
     margin-bottom: 20px;
 }
 
@@ -226,4 +235,3 @@ h2, h3 {
     background-color: #007bff;
     color: #fff;
 }
-
