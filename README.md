@@ -1,4 +1,16 @@
 
+Home/Index
+![csnd-index](https://github.com/user-attachments/assets/b2841f96-844d-4853-9173-72cb4e23f5c8)
+
+Network "Management"
+![csnd-network-mgmt](https://github.com/user-attachments/assets/d1c5e2b7-1e10-4e88-a701-e6c7eed2f04f)
+
+Inventory
+![csnd-inventory](https://github.com/user-attachments/assets/79e7b7f2-5d91-45dd-a277-16b6ce36e1b1)
+
+
+
+
 Install:
 
 sudo git clone https://github.com/silentf666/csnd.git
