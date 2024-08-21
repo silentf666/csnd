@@ -42,3 +42,7 @@ sudo systemctl enable csnd.service
 
 view console Output of the Service: 
 journalctl -f -u csnd.servic
+
+
+Additional Info:
+Script tries to make arp scan, if its not possible (routed networks) it falls back to simple ICMP.
