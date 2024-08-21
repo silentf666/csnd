@@ -301,4 +301,4 @@ def schedule_discovery():
 if __name__ == '__main__':
     # Start the scheduler in a separate thread
     threading.Thread(target=schedule_discovery, daemon=True).start()
-    app.run(host='0.0.0.0', port=6000, debug=False)
+    app.run(host='0.0.0.0', port=5001, debug=False)
