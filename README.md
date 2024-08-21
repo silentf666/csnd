@@ -24,12 +24,13 @@ sudo nano /etc/systemd/system/csnd.service
 
 [Unit]
 Description=Crazy Simple NETWORK DISCOVERY
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 User=your username
 WorkingDirectory=/home/user/code/csnd/ ### place where the git code is cloned in
-ExecStart=python3 app.py
+ExecStart=/usr/bin/python3 app.py
 Restart=always
 
 [Install]
