@@ -14,8 +14,11 @@ Inventory
 Install:
 
 sudo git clone https://github.com/silentf666/csnd.git
+
 sudo setcap cap_net_raw+ep $(eval readlink -f `which python3`) ### is needed to scapy
+
 pip install scapy
+
 flask run --host=0.0.0.0 --port=5001 ### test if everything is working so far
 
 if you want to run in autostart (Linux/Raspi)
