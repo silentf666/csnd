@@ -15,7 +15,7 @@ Install:
 
 sudo git clone https://github.com/silentf666/csnd.git
 
-sudo setcap cap_net_raw+ep $(eval readlink -f `which python3`) ### is needed to scapy
+sudo setcap cap_net_raw+ep $(eval readlink -f `which python3`) ### is needed for scapy
 
 pip install scapy
 
